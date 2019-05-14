@@ -1,4 +1,4 @@
-package lib
+package db
 
 import (
 	"fmt"
@@ -7,19 +7,20 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/gener8ads/lib-go/pkg/env"
 	"github.com/jinzhu/gorm"
 
 	// postgres driver for gorm
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
 
-// DbConnect returns an open database connection
-func DbConnect() *gorm.DB {
-	host := Getenv("DB_HOST", "localhost")
-	name := Getenv("DB_NAME", "postgres")
-	user := Getenv("DB_USER", "postgres")
-	pass := Getenv("DB_PASS", "postgres")
-	port := Getenv("DB_PORT", "5432")
+// Connect returns an open database connection
+func Connect() *gorm.DB {
+	host := env.Get("DB_HOST", "localhost")
+	name := env.Get("DB_NAME", "postgres")
+	user := env.Get("DB_USER", "postgres")
+	pass := env.Get("DB_PASS", "postgres")
+	port := env.Get("DB_PORT", "5432")
 
 	config := fmt.Sprintf("host=%s dbname=%s user=%s password=%s port=%s sslmode=disable", host, name, user, pass, port)
 
@@ -46,7 +47,7 @@ func DbConnect() *gorm.DB {
 		log.Fatalf("Unable to establish DB connection:\n%s", err.Error())
 	}
 
-	logMode, _ := strconv.ParseBool(Getenv("DB_QUERY_LOG", "false"))
+	logMode, _ := strconv.ParseBool(env.Get("DB_QUERY_LOG", "false"))
 	db.LogMode(logMode)
 
 	return db
