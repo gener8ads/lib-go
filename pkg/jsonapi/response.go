@@ -4,7 +4,7 @@ import (
 	"github.com/google/jsonapi"
 )
 
-// Marshall a response
+// Marshal a response
 func Marshal(models interface{}) (jsonapi.Payloader, error) {
 	return jsonapi.Marshal(models)
 }
