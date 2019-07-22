@@ -15,6 +15,7 @@ type Pagination struct {
 	Count       int
 	CurrentPage int
 	PerPage     int
+	CustomMeta  map[string]interface{}
 }
 
 // Marshal returns a JSON API shaped struct
@@ -64,10 +65,16 @@ func (t Pagination) links() *jsonapi.Links {
 }
 
 func (t Pagination) meta() *jsonapi.Meta {
-	return &jsonapi.Meta{
+	meta := jsonapi.Meta{
 		"count":       t.Count,
 		"total-pages": t.pageCount(),
 	}
+
+	for key, val := range t.CustomMeta {
+		meta[key] = val
+	}
+
+	return &meta
 }
 
 func (t Pagination) pageCount() int {
