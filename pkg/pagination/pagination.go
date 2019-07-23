@@ -8,10 +8,14 @@ import (
 )
 
 // Parse helper
-func Parse(c *gin.Context) (page int, perPage int) {
+func Parse(c *gin.Context, maxPerPageOverride ...float64) (page int, perPage int) {
 	minPage := float64(1)
 	minPerPage := float64(1)
 	maxPerPage := float64(50)
+
+	if len(maxPerPageOverride) > 0 {
+		maxPerPage = maxPerPageOverride[0]
+	}
 
 	page, _ = strconv.Atoi(c.DefaultQuery("page", "1"))
 	perPage, _ = strconv.Atoi(c.DefaultQuery("perPage", "25"))
