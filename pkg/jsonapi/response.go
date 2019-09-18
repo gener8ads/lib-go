@@ -18,6 +18,7 @@ type ErrorResponse struct {
 	Status  int
 	Code    string
 	Pointer string
+	Detail  string
 }
 
 type jsonAPIError struct {
@@ -60,6 +61,7 @@ func Error(c *gin.Context, err ErrorResponse) {
 			errorObject{
 				Code:   code,
 				Status: strconv.Itoa(err.Status),
+				Detail: err.Detail,
 				Source: errorSource{
 					Pointer: pointer,
 				},
