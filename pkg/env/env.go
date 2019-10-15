@@ -2,7 +2,7 @@ package env
 
 import "os"
 
-// Getenv returns an env var or fallback string
+// Get returns an env var or fallback string
 func Get(key string, fallback string) string {
 	value := os.Getenv(key)
 
