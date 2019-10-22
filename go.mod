@@ -11,6 +11,7 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware v1.0.0
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
 	github.com/jinzhu/gorm v1.9.5
+	github.com/json-iterator/go v1.1.7
 	github.com/opentracing/opentracing-go v1.1.0 // indirect
 	github.com/sirupsen/logrus v1.2.0
 	google.golang.org/grpc v1.21.1
