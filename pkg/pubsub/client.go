@@ -4,15 +4,17 @@ import (
 	"context"
 	"log"
 	"os"
+	"time"
 
 	"cloud.google.com/go/pubsub"
 )
 
-var ctx context.Context
+var timeout = time.Second * 5
 
 // Client creates a new pubsub client
 func Client() *pubsub.Client {
-	ctx = context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
 	projectID := os.Getenv("GCP_PROJECT")
 
 	client, err := pubsub.NewClient(ctx, projectID)
@@ -26,7 +28,8 @@ func Client() *pubsub.Client {
 // Topic creates an instantiated pubsub topic
 func Topic(topicID string) (*pubsub.Topic, error) {
 	client := Client()
-
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
 	topic := client.Topic(topicID)
 	topicExists, err := topic.Exists(ctx)
 
@@ -45,6 +48,8 @@ func Topic(topicID string) (*pubsub.Topic, error) {
 // Subscription creates a instantiated pubsub subscription
 func Subscription(subID string, topic *pubsub.Topic) (*pubsub.Subscription, error) {
 	client := Client()
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
 	subscription := client.Subscription(subID)
 	subExists, err := subscription.Exists(ctx)
 
