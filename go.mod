@@ -15,4 +15,5 @@ require (
 	github.com/opentracing/opentracing-go v1.1.0 // indirect
 	github.com/sirupsen/logrus v1.2.0
 	google.golang.org/grpc v1.21.1
+	gopkg.in/DataDog/dd-trace-go.v1 v1.19.0 // indirect
 )

@@ -15,10 +15,11 @@ import (
 	"google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/reflection"
+	grpc_datadogtrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/google.golang.org/grpc"
 )
 
 // NewServer returns an instrumented gRPC server
-func NewServer() *grpc.Server {
+func NewServer(serviceName string) *grpc.Server {
 	logrusLogger := logrus.New()
 	// Logrus entry is used, allowing pre-definition of certain fields by the user.
 	logrusEntry := logrus.NewEntry(logrusLogger)
@@ -42,6 +43,7 @@ func NewServer() *grpc.Server {
 			grpc_ctxtags.UnaryServerInterceptor(grpc_ctxtags.WithFieldExtractor(grpc_ctxtags.CodeGenRequestFieldExtractor)),
 			grpc_opentracing.UnaryServerInterceptor(),
 			grpc_prometheus.UnaryServerInterceptor,
+			grpc_datadogtrace.UnaryServerInterceptor(grpc_datadogtrace.WithServiceName(serviceName)),
 			grpc_logrus.UnaryServerInterceptor(logrusEntry, opts...),
 			grpc_recovery.UnaryServerInterceptor(),
 		)),
