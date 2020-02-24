@@ -47,7 +47,7 @@ func Error(c *gin.Context, err ErrorResponse) {
 	if pointer == "" {
 		pointer = "data/"
 	} else if !strings.Contains(pointer, "attribute") {
-		pointer = "data/attribute/" + pointer
+		pointer = "data/attributes/" + pointer
 	}
 
 	code := err.Code
