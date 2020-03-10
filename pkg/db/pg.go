@@ -68,15 +68,42 @@ func Connection() *pg.DB {
 }
 
 func connect() (*pg.DB, error) {
+	poolSize, err := strconv.Atoi(env.Get("DB_POOL_SIZE", "10"))
+	if err != nil {
+		poolSize = 10
+	}
+	minIdleConns, err := strconv.Atoi(env.Get("DB_MIN_IDLE", "5"))
+	if err != nil {
+		minIdleConns = 5
+	}
+	var maxConnAge time.Duration
+	iMaxConnAge, err := strconv.Atoi(env.Get("DB_MAX_CONN_AGE", "5"))
+	if err != nil {
+		maxConnAge = 5 * time.Minute
+	} else {
+		maxConnAge = time.Duration(iMaxConnAge) * time.Minute
+	}
+	var idleTimeout time.Duration
+	iIdleTimeout, err := strconv.Atoi(env.Get("DB_IDLE_TIMEOUT", "2"))
+	if err != nil {
+		idleTimeout = 2 * time.Minute
+	} else {
+		idleTimeout = time.Duration(iIdleTimeout) * time.Minute
+	}
+
 	db := pg.Connect(&pg.Options{
-		Addr:     env.Get("DB_HOST", "localhost:5432"),
-		Database: env.Get("DB_NAME", "postgres"),
-		User:     env.Get("DB_USER", "postgres"),
-		Password: env.Get("DB_PASS", "postgres"),
+		Addr:         env.Get("DB_HOST", "localhost:5432"),
+		Database:     env.Get("DB_NAME", "postgres"),
+		User:         env.Get("DB_USER", "postgres"),
+		Password:     env.Get("DB_PASS", "postgres"),
+		PoolSize:     poolSize,
+		MinIdleConns: minIdleConns,
+		MaxConnAge:   maxConnAge,
+		IdleTimeout:  idleTimeout,
 	})
 
 	var n int
-	_, err := db.QueryOne(pg.Scan(&n), "SELECT 1")
+	_, err = db.QueryOne(pg.Scan(&n), "SELECT 1")
 
 	return db, err
 }
