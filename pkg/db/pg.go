@@ -61,6 +61,12 @@ func Connection() *pg.DB {
 	queryLogEnabled, _ := strconv.ParseBool(env.Get("DB_QUERY_LOG", "false"))
 	if queryLogEnabled {
 		conn.AddQueryHook(dbLogger{})
+		go func() {
+			for {
+				time.Sleep(time.Second * 10)
+				PoolStats()
+			}
+		}()
 	}
 
 	isInit = true
@@ -73,6 +79,15 @@ func GetHandle() *pg.Conn {
 		return conn.Conn()
 	}
 	return Connection().Conn()
+}
+
+// PoolStats print the Connection Pool stats to STDOUT
+func PoolStats() {
+	if isInit {
+		stats := conn.PoolStats()
+		log.Printf("Pool stats:\n\tHits: %d\n\tMisses: %d\n\tTimeouts: %d\n\tTotalConns: %d\n\tIdleConns: %d\n\tStaleConns: %v\n",
+			stats.Hits, stats.Misses, stats.Timeouts, stats.TotalConns, stats.IdleConns, stats.StaleConns)
+	}
 }
 
 func connect() (*pg.DB, error) {
