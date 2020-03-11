@@ -67,6 +67,14 @@ func Connection() *pg.DB {
 	return conn
 }
 
+// GetHandle for a single connection in the pool for go-pg
+func GetHandle() *pg.Conn {
+	if isInit {
+		return conn.Conn()
+	}
+	return Connection().Conn()
+}
+
 func connect() (*pg.DB, error) {
 	poolSize, err := strconv.Atoi(env.Get("DB_POOL_SIZE", "10"))
 	if err != nil {
