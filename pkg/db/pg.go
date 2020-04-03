@@ -113,6 +113,10 @@ func connect() (*pg.DB, error) {
 	} else {
 		idleTimeout = time.Duration(iIdleTimeout) * time.Minute
 	}
+	maxRetries, err := strconv.Atoi(env.Get("DB_MAX_RETRIES", "3"))
+	if err != nil {
+		maxRetries = 3
+	}
 
 	db := pg.Connect(&pg.Options{
 		Addr:         env.Get("DB_HOST", "localhost:5432"),
@@ -123,6 +127,7 @@ func connect() (*pg.DB, error) {
 		MinIdleConns: minIdleConns,
 		MaxConnAge:   maxConnAge,
 		IdleTimeout:  idleTimeout,
+		MaxRetries:   maxRetries,
 	})
 
 	var n int
