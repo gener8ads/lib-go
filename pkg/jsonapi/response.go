@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/jsonapi"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
 // Marshal a response
@@ -67,6 +68,13 @@ func Error(c *gin.Context, err ErrorResponse) {
 				},
 			},
 		},
+	}
+
+	if err.Status >= 500 {
+		span, found := tracer.SpanFromContext(c.Request.Context())
+		if found {
+			span.SetTag("app.error", err)
+		}
 	}
 
 	c.AbortWithStatusJSON(err.Status, res)
