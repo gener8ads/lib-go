@@ -3,6 +3,7 @@ package recaptcha
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -106,6 +107,7 @@ func Middleware(expectedAction string) gin.HandlerFunc {
 			})
 			return
 		}
+		log.Printf("res: %#+v\n", res)
 
 		if captchaVersion == 3 {
 			if res.Action != expectedAction {
