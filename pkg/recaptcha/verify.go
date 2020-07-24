@@ -124,7 +124,7 @@ func Middleware(expectedAction string) gin.HandlerFunc {
 				jsonapi.Error(c, jsonapi.ErrorResponse{
 					Status: http.StatusUnprocessableEntity,
 					Code:   "recaptcha.challenge",
-					Detail: "recaptcha.challenge",
+					Detail: fmt.Sprintf("recaptcha.challenge.%f", res.Score),
 				})
 				return
 			}
@@ -134,7 +134,7 @@ func Middleware(expectedAction string) gin.HandlerFunc {
 				jsonapi.Error(c, jsonapi.ErrorResponse{
 					Status: http.StatusUnprocessableEntity,
 					Code:   "recaptcha.challenge",
-					Detail: "recaptcha.challenge",
+					Detail: fmt.Sprintf("recaptcha.challenge.%s", res.Hostname),
 				})
 				return
 			}
@@ -144,7 +144,7 @@ func Middleware(expectedAction string) gin.HandlerFunc {
 				jsonapi.Error(c, jsonapi.ErrorResponse{
 					Status: http.StatusUnprocessableEntity,
 					Code:   "recaptcha.challenge",
-					Detail: "recaptcha.challenge",
+					Detail: fmt.Sprintf("recaptcha.challenge.%s", res.ChallengeTimestamp.Format("2006-01-02T15:04:05-0700")),
 				})
 				return
 			}
