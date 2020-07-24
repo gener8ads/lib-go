@@ -3,7 +3,6 @@ package recaptcha
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -107,7 +106,6 @@ func Middleware(expectedAction string) gin.HandlerFunc {
 			})
 			return
 		}
-		log.Printf("res: %#+v\n", res)
 
 		if captchaVersion == 3 {
 			if res.Action != expectedAction {
@@ -124,7 +122,7 @@ func Middleware(expectedAction string) gin.HandlerFunc {
 				jsonapi.Error(c, jsonapi.ErrorResponse{
 					Status: http.StatusUnprocessableEntity,
 					Code:   "recaptcha.challenge",
-					Detail: fmt.Sprintf("recaptcha.challenge.%f", res.Score),
+					Detail: "recaptcha.challenge",
 				})
 				return
 			}
@@ -134,7 +132,7 @@ func Middleware(expectedAction string) gin.HandlerFunc {
 				jsonapi.Error(c, jsonapi.ErrorResponse{
 					Status: http.StatusUnprocessableEntity,
 					Code:   "recaptcha.challenge",
-					Detail: fmt.Sprintf("recaptcha.challenge.%s", res.Hostname),
+					Detail: "recaptcha.challenge",
 				})
 				return
 			}
@@ -144,7 +142,7 @@ func Middleware(expectedAction string) gin.HandlerFunc {
 				jsonapi.Error(c, jsonapi.ErrorResponse{
 					Status: http.StatusUnprocessableEntity,
 					Code:   "recaptcha.challenge",
-					Detail: fmt.Sprintf("recaptcha.challenge.%s", res.ChallengeTimestamp.Format("2006-01-02T15:04:05-0700")),
+					Detail: "recaptcha.challenge",
 				})
 				return
 			}
