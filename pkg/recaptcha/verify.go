@@ -9,10 +9,10 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/gener8ads/lib-go/pkg/ginutil"
 	"github.com/gener8ads/lib-go/pkg/jsonapi"
 	"github.com/gin-gonic/gin"
 	jsoniter "github.com/json-iterator/go"
-	"gitlab.com/gener8ads/lib-internal/pkg/ginutil"
 )
 
 const endpoint = "https://www.google.com/recaptcha/api/siteverify"
@@ -72,6 +72,14 @@ func Middleware(expectedAction string) gin.HandlerFunc {
 		3: os.Getenv("RECAPTCHA_V3_SECRET"),
 	}
 
+	minScore, _ := strconv.ParseFloat(os.Getenv("RECAPTCHA_MIN_SCORE"), 32)
+
+	expectedHostname := os.Getenv("RECAPTCHA_HOSTNAME")
+
+	iMaxTime, _ := strconv.Atoi(os.Getenv("RECAPTCHA_MAX_TIME"))
+
+	maxTime := time.Duration(iMaxTime)
+
 	return func(c *gin.Context) {
 		if !enabled {
 			return
@@ -107,48 +115,43 @@ func Middleware(expectedAction string) gin.HandlerFunc {
 			return
 		}
 
-		if captchaVersion == 3 {
-			if res.Action != expectedAction {
-				jsonapi.Error(c, jsonapi.ErrorResponse{
-					Status: http.StatusUnprocessableEntity,
-					Code:   "recaptcha.incorrectAction",
-					Detail: "recaptcha.incorrectAction",
-				})
-				return
-			}
-
-			minScore, _ := strconv.ParseFloat(os.Getenv("RECAPTCHA_MIN_SCORE"), 32)
-			if res.Score < minScore {
-				jsonapi.Error(c, jsonapi.ErrorResponse{
-					Status: http.StatusUnprocessableEntity,
-					Code:   "recaptcha.challenge",
-					Detail: "recaptcha.challenge",
-				})
-				return
-			}
-
-			expectedHostname := os.Getenv("RECAPTCHA_HOSTNAME")
-			if expectedHostname != "" && res.Hostname != expectedHostname {
-				jsonapi.Error(c, jsonapi.ErrorResponse{
-					Status: http.StatusUnprocessableEntity,
-					Code:   "recaptcha.challenge",
-					Detail: "recaptcha.challenge",
-				})
-				return
-			}
-
-			maxTime, _ := strconv.Atoi(os.Getenv("RECAPTCHA_MAX_TIME"))
-			if maxTime > 0 && res.ChallengeTimestamp.Add(time.Duration(maxTime)*time.Second).Before(time.Now()) {
-				jsonapi.Error(c, jsonapi.ErrorResponse{
-					Status: http.StatusUnprocessableEntity,
-					Code:   "recaptcha.challenge",
-					Detail: "recaptcha.challenge",
-				})
-				return
-			}
-
-			// Stash the score in the context in case we need to publish it
-			c.Set(CaptchaScore, res.Score)
+		if captchaVersion == 3 && res.Action != expectedAction {
+			jsonapi.Error(c, jsonapi.ErrorResponse{
+				Status: http.StatusUnprocessableEntity,
+				Code:   "recaptcha.incorrectAction",
+				Detail: "recaptcha.incorrectAction",
+			})
+			return
 		}
+
+		if res.Score < minScore {
+			jsonapi.Error(c, jsonapi.ErrorResponse{
+				Status: http.StatusUnprocessableEntity,
+				Code:   "recaptcha.challenge",
+				Detail: "recaptcha.challenge",
+			})
+			return
+		}
+
+		if expectedHostname != "" && res.Hostname != expectedHostname {
+			jsonapi.Error(c, jsonapi.ErrorResponse{
+				Status: http.StatusUnprocessableEntity,
+				Code:   "recaptcha.challenge",
+				Detail: "recaptcha.challenge",
+			})
+			return
+		}
+
+		if maxTime > 0 && res.ChallengeTimestamp.Add(maxTime*time.Second).Before(time.Now()) {
+			jsonapi.Error(c, jsonapi.ErrorResponse{
+				Status: http.StatusUnprocessableEntity,
+				Code:   "recaptcha.challenge",
+				Detail: "recaptcha.challenge",
+			})
+			return
+		}
+
+		// Stash the score in the context in case we need to publish it
+		c.Set(CaptchaScore, res.Score)
 	}
 }
