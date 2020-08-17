@@ -3,6 +3,7 @@ module github.com/gener8ads/lib-go
 go 1.12
 
 require (
+	cloud.google.com/go v0.45.1
 	cloud.google.com/go/pubsub v1.0.1
 	github.com/DataDog/datadog-go v3.4.0+incompatible // indirect
 	github.com/gin-gonic/gin v1.4.0
@@ -11,6 +12,7 @@ require (
 	github.com/google/uuid v1.1.1
 	github.com/grpc-ecosystem/go-grpc-middleware v1.0.0
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
+	github.com/hashicorp/go-version v1.2.1
 	github.com/jinzhu/gorm v1.9.5
 	github.com/json-iterator/go v1.1.7
 	github.com/opentracing/opentracing-go v1.1.0 // indirect
