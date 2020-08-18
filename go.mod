@@ -6,7 +6,7 @@ require (
 	cloud.google.com/go/pubsub v1.0.1
 	github.com/DataDog/datadog-go v3.4.0+incompatible // indirect
 	github.com/gin-gonic/gin v1.4.0
-	github.com/go-pg/pg/v9 v9.0.0-beta.11
+	github.com/go-pg/pg/v9 v9.1.6
 	github.com/google/jsonapi v0.0.0-20181016150055-d0428f63eb51
 	github.com/google/uuid v1.1.1
 	github.com/grpc-ecosystem/go-grpc-middleware v1.0.0
