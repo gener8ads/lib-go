@@ -115,22 +115,24 @@ func Middleware(expectedAction string) gin.HandlerFunc {
 			return
 		}
 
-		if captchaVersion == 3 && res.Action != expectedAction {
-			jsonapi.Error(c, jsonapi.ErrorResponse{
-				Status: http.StatusUnprocessableEntity,
-				Code:   "recaptcha.incorrectAction",
-				Detail: "recaptcha.incorrectAction",
-			})
-			return
-		}
+		if captchaVersion == 3 {
+			if res.Action != expectedAction {
+				jsonapi.Error(c, jsonapi.ErrorResponse{
+					Status: http.StatusUnprocessableEntity,
+					Code:   "recaptcha.incorrectAction",
+					Detail: "recaptcha.incorrectAction",
+				})
+				return
+			}
 
-		if res.Score < minScore {
-			jsonapi.Error(c, jsonapi.ErrorResponse{
-				Status: http.StatusUnprocessableEntity,
-				Code:   "recaptcha.challenge",
-				Detail: "recaptcha.challenge",
-			})
-			return
+			if res.Score < minScore {
+				jsonapi.Error(c, jsonapi.ErrorResponse{
+					Status: http.StatusUnprocessableEntity,
+					Code:   "recaptcha.challenge",
+					Detail: "recaptcha.challenge",
+				})
+				return
+			}
 		}
 
 		if expectedHostname != "" && res.Hostname != expectedHostname {
