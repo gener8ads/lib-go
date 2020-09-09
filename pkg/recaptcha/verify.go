@@ -3,6 +3,7 @@ package recaptcha
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -107,6 +108,10 @@ func Middleware(expectedAction string) gin.HandlerFunc {
 
 		res, err := Verify(secret, c.GetHeader(tokenHeader), ginutil.ExtractIP(c))
 		if err != nil || !res.Success {
+			if err != nil {
+				log.Printf("err: %#+v\n", err)
+			}
+			log.Printf("res: %#+v\n", *res)
 			jsonapi.Error(c, jsonapi.ErrorResponse{
 				Status: http.StatusUnprocessableEntity,
 				Code:   "recaptcha.challenge",
