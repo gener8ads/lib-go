@@ -19,8 +19,7 @@ import (
 )
 
 var (
-	zapLogger  *zap.Logger
-	customFunc grpc_zap.CodeToLevel
+	zapLogger *zap.Logger
 )
 
 // NewServer returns an instrumented gRPC server
@@ -28,7 +27,7 @@ func NewServer(serviceName string) *grpc.Server {
 	zapLogger = zap.NewExample()
 	// Shared options for the logger, with a custom gRPC code to log level function.
 	opts := []grpc_zap.Option{
-		grpc_zap.WithLevels(customFunc),
+		grpc_zap.WithLevels(grpc_zap.DefaultCodeToLevel),
 	}
 	// Make sure that log statements internal to gRPC library are logged using the zapLogger as well.
 	grpc_zap.ReplaceGrpcLogger(zapLogger)
