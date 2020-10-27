@@ -1,6 +1,7 @@
 package jsonapi
 
 import (
+	"errors"
 	"strconv"
 	"strings"
 
@@ -58,7 +59,7 @@ func Error(c *gin.Context, err ErrorResponse) {
 
 	res := jsonAPIError{
 		Errors: []errorObject{
-			errorObject{
+			{
 				Code:   code,
 				Status: strconv.Itoa(err.Status),
 				Detail: err.Detail,
@@ -69,5 +70,6 @@ func Error(c *gin.Context, err ErrorResponse) {
 		},
 	}
 
+	c.Error(errors.New(code))
 	c.AbortWithStatusJSON(err.Status, res)
 }
