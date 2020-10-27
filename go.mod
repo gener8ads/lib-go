@@ -19,6 +19,7 @@ require (
 	github.com/philhofer/fwd v1.0.0 // indirect
 	github.com/sirupsen/logrus v1.2.0
 	github.com/tinylib/msgp v1.1.1 // indirect
+	go.uber.org/zap v1.16.0
 	golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543 // indirect
 	google.golang.org/grpc v1.21.1
 	gopkg.in/DataDog/dd-trace-go.v1 v1.19.0
