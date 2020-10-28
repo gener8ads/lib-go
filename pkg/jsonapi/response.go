@@ -1,7 +1,6 @@
 package jsonapi
 
 import (
-	"errors"
 	"strconv"
 	"strings"
 
@@ -71,5 +70,4 @@ func Error(c *gin.Context, err ErrorResponse) {
 	}
 
 	c.AbortWithStatusJSON(err.Status, res)
-	c.Error(errors.New(code))
 }
