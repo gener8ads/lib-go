@@ -70,6 +70,6 @@ func Error(c *gin.Context, err ErrorResponse) {
 		},
 	}
 
-	c.Error(errors.New(code))
 	c.AbortWithStatusJSON(err.Status, res)
+	c.Error(errors.New(code))
 }
