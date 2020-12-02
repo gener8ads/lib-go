@@ -7,7 +7,8 @@ require (
 	cloud.google.com/go/pubsub v1.0.1
 	github.com/DataDog/datadog-go v3.4.0+incompatible // indirect
 	github.com/gin-gonic/gin v1.4.0
-	github.com/go-pg/pg/v9 v9.1.6
+	github.com/go-pg/pg/extra/pgotel v0.2.0 // indirect
+	github.com/go-pg/pg/v10 v10.7.3
 	github.com/gogo/protobuf v1.2.0 // indirect
 	github.com/google/jsonapi v0.0.0-20181016150055-d0428f63eb51
 	github.com/google/uuid v1.1.1
@@ -20,7 +21,6 @@ require (
 	github.com/prometheus/client_golang v0.9.3-0.20190127221311-3c4408c8b829 // indirect
 	github.com/tinylib/msgp v1.1.1 // indirect
 	go.uber.org/zap v1.16.0
-	golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543 // indirect
-	google.golang.org/grpc v1.21.1
+	google.golang.org/grpc v1.27.0
 	gopkg.in/DataDog/dd-trace-go.v1 v1.19.0
 )

@@ -8,7 +8,8 @@ import (
 	"time"
 
 	"github.com/gener8ads/lib-go/pkg/env"
-	"github.com/go-pg/pg/v9"
+	"github.com/go-pg/pg/extra/pgotel"
+	"github.com/go-pg/pg/v10"
 )
 
 var conn *pg.DB
@@ -60,7 +61,7 @@ func Connection() *pg.DB {
 
 	queryLogEnabled, _ := strconv.ParseBool(env.Get("DB_QUERY_LOG", "false"))
 	if queryLogEnabled {
-		conn.AddQueryHook(dbLogger{})
+		conn.AddQueryHook(pgotel.TracingHook{})
 		go func() {
 			for {
 				time.Sleep(time.Second * 10)
