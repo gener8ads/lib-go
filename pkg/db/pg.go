@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/gener8ads/lib-go/pkg/env"
-	"github.com/go-pg/pg/extra/pgotel"
 	"github.com/go-pg/pg/v10"
 )
 
@@ -19,12 +18,13 @@ var once sync.Once
 type dbLogger struct{}
 
 func (d dbLogger) BeforeQuery(c context.Context, q *pg.QueryEvent) (context.Context, error) {
-	return c, nil
+	return context.WithValue(c, "start", time.Now().UnixNano()), nil
 }
 
 func (d dbLogger) AfterQuery(c context.Context, q *pg.QueryEvent) error {
 	query, err := q.FormattedQuery()
-	log.Println(query)
+	end := time.Now().UnixNano()
+	log.Printf("%s (%.6f)", query, float64(end-c.Value("start").(int64))/1000000000)
 
 	if err != nil {
 		log.Printf("ERROR: %s", err)
@@ -59,7 +59,7 @@ func Connection() *pg.DB {
 
 		queryLogEnabled, _ := strconv.ParseBool(env.Get("DB_QUERY_LOG", "false"))
 		if queryLogEnabled {
-			conn.AddQueryHook(pgotel.TracingHook{})
+			conn.AddQueryHook(dbLogger{})
 			go func() {
 				for {
 					time.Sleep(time.Second * 10)
