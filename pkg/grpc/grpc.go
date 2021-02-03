@@ -39,19 +39,19 @@ func NewServer(serviceName string) *grpc.Server {
 	server := grpc.NewServer(
 		grpc.StreamInterceptor(grpc_middleware.ChainStreamServer(
 			grpc_ctxtags.StreamServerInterceptor(grpc_ctxtags.WithFieldExtractor(grpc_ctxtags.CodeGenRequestFieldExtractor)),
-			StreamServerInterceptor(),
 			grpc_opentracing.StreamServerInterceptor(),
 			grpc_prometheus.StreamServerInterceptor,
 			grpc_zap.StreamServerInterceptor(zapLogger, opts...),
+			StreamServerInterceptor(),
 			grpc_recovery.StreamServerInterceptor(),
 		)),
 		grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(
 			grpc_ctxtags.UnaryServerInterceptor(grpc_ctxtags.WithFieldExtractor(grpc_ctxtags.CodeGenRequestFieldExtractor)),
-			UnaryServerInterceptor(),
 			grpc_opentracing.UnaryServerInterceptor(),
 			grpc_prometheus.UnaryServerInterceptor,
 			grpc_datadogtrace.UnaryServerInterceptor(grpc_datadogtrace.WithServiceName(serviceName)),
 			grpc_zap.UnaryServerInterceptor(zapLogger, opts...),
+			UnaryServerInterceptor(),
 			grpc_recovery.UnaryServerInterceptor(),
 		)),
 		grpc.KeepaliveParams(keepalive.ServerParameters{
