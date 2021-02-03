@@ -42,7 +42,7 @@ func NewServer(serviceName string) *grpc.Server {
 			grpc_opentracing.StreamServerInterceptor(),
 			grpc_prometheus.StreamServerInterceptor,
 			grpc_zap.StreamServerInterceptor(zapLogger, opts...),
-			StreamServerInterceptor(),
+			RequestIDLoggingStreamInterceptor(),
 			grpc_recovery.StreamServerInterceptor(),
 		)),
 		grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(
@@ -51,7 +51,7 @@ func NewServer(serviceName string) *grpc.Server {
 			grpc_prometheus.UnaryServerInterceptor,
 			grpc_datadogtrace.UnaryServerInterceptor(grpc_datadogtrace.WithServiceName(serviceName)),
 			grpc_zap.UnaryServerInterceptor(zapLogger, opts...),
-			UnaryServerInterceptor(),
+			RequestIDLoggingUnaryInterceptor(),
 			grpc_recovery.UnaryServerInterceptor(),
 		)),
 		grpc.KeepaliveParams(keepalive.ServerParameters{
@@ -67,16 +67,16 @@ func NewServer(serviceName string) *grpc.Server {
 	return server
 }
 
-// UnaryServerInterceptor returns a new unary server interceptors that sets the values for request tags.
-func UnaryServerInterceptor() grpc.UnaryServerInterceptor {
+// RequestIDLoggingUnaryInterceptor hauls the requestId (if available) out of the requests context & adds it to the zap.Logger's context.
+func RequestIDLoggingUnaryInterceptor() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 		logRequestID(ctx)
 		return handler(ctx, req)
 	}
 }
 
-// StreamServerInterceptor returns a new streaming server interceptor that adds zap.Logger to the context.
-func StreamServerInterceptor() grpc.StreamServerInterceptor {
+// RequestIDLoggingStreamInterceptor hauls the requestId (if available) out of the requests context & adds it to the zap.Logger's context.
+func RequestIDLoggingStreamInterceptor() grpc.StreamServerInterceptor {
 	return func(srv interface{}, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
 
 		ctx := stream.Context()
