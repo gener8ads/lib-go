@@ -94,7 +94,7 @@ func NewLoggingHandler(next HandlerFunc, subscriptionName string, opts ...Option
 		next(ctx, msg)
 
 		fields := []zapcore.Field{
-			zap.String("pubsub.msg.id", subscriptionName),
+			zap.String("pubsub.subscription", subscriptionName),
 			zap.String("pubsub.msg.id", msg.ID),
 			zap.Time("pubsub.msg.publishTime", msg.PublishTime),
 			zap.Duration("pubsub.latency", time.Since(startTime)),
