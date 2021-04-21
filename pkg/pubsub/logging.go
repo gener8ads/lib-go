@@ -47,7 +47,7 @@ func defaultMessageProducer(ctx context.Context, msg string, logger *zap.Logger,
 }
 
 // NewLoggingHandler returns a new logging handler middleware which uses Zap as the logger.
-func NewLoggingHandler(next HandlerFunc, opts ...Option) HandlerFunc {
+func NewLoggingHandler(next HandlerFunc, subscriptionName string, opts ...Option) HandlerFunc {
 	o := defaultOptions()
 	for _, opt := range opts {
 		opt(o)
@@ -94,6 +94,7 @@ func NewLoggingHandler(next HandlerFunc, opts ...Option) HandlerFunc {
 		next(ctx, msg)
 
 		fields := []zapcore.Field{
+			zap.String("pubsub.msg.id", subscriptionName),
 			zap.String("pubsub.msg.id", msg.ID),
 			zap.Time("pubsub.msg.publishTime", msg.PublishTime),
 			zap.Duration("pubsub.latency", time.Since(startTime)),
