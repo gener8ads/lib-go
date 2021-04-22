@@ -2,7 +2,6 @@ package pubsub
 
 import (
 	"context"
-	"log"
 	"os"
 	"time"
 
@@ -98,12 +97,7 @@ func NewLoggingHandler(next HandlerFunc, subscriptionName string, opts ...Option
 		startTime := time.Now()
 
 		ResultHolder = "completed"
-
-		log.Printf("msg.Attributes: %#+v\n", msg.Attributes)
-
 		next(ctx, msg)
-
-		log.Printf("msg.Attributes: %#+v\n", msg.Attributes)
 
 		fields := []zapcore.Field{
 			zap.String("pubsub.subscription", subscriptionName),
