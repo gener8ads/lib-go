@@ -2,7 +2,6 @@ package pubsub
 
 import (
 	"context"
-	"log"
 	"os"
 	"time"
 
@@ -24,7 +23,7 @@ type options struct {
 }
 
 // HandlerFunc is a pubsub handler function which can be used in pubsub subscription receive.
-type HandlerFunc func(ctx context.Context, m *pubsub.Message)
+type HandlerFunc func(ctx context.Context, m *pubsub.Message) string
 
 func defaultOptions() *options {
 	return &options{
@@ -91,11 +90,11 @@ func NewLoggingHandler(next HandlerFunc, subscriptionName string, opts ...Option
 
 	logger = zap.New(core)
 
-	return func(ctx context.Context, msg *pubsub.Message) {
+	return func(ctx context.Context, msg *pubsub.Message) string {
 		defer logger.Sync()
 		startTime := time.Now()
 
-		next(ctx, msg)
+		result := next(ctx, msg)
 
 		fields := []zapcore.Field{
 			zap.String("pubsub.subscription", subscriptionName),
@@ -109,18 +108,8 @@ func NewLoggingHandler(next HandlerFunc, subscriptionName string, opts ...Option
 		}
 
 		if o.messageFunc != nil {
-			result := "completed"
-			if r, ok := ctx.Value(ResultKey).(string); ok {
-				result = r
-				log.Println("Success")
-				log.Printf("ok: %#+v\n", ok)
-				log.Printf("r: %#+v\n", r)
-			} else {
-				log.Println("Fail")
-				log.Printf("ok: %#+v\n", ok)
-				log.Printf("r: %#+v\n", r)
-			}
 			o.messageFunc(ctx, result, logger, fields)
 		}
+		return ""
 	}
 }
