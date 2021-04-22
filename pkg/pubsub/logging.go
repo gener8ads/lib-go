@@ -112,11 +112,11 @@ func NewLoggingHandler(next HandlerFunc, subscriptionName string, opts ...Option
 			result := "completed"
 			if r, ok := ctx.Value(ResultKey).(string); ok {
 				result = r
-				log.Panicln("Success")
+				log.Println("Success")
 				log.Printf("ok: %#+v\n", ok)
 				log.Printf("r: %#+v\n", r)
 			} else {
-				log.Panicln("Fail")
+				log.Println("Fail")
 				log.Printf("ok: %#+v\n", ok)
 				log.Printf("r: %#+v\n", r)
 			}
