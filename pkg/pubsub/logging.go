@@ -92,6 +92,10 @@ func NewLoggingHandler(next HandlerFunc, subscriptionName string, opts ...Option
 		defer logger.Sync()
 		startTime := time.Now()
 
+		if msg.Attributes == nil {
+			msg.Attributes = make(map[string]string, 0)
+		}
+
 		next(ctx, msg)
 
 		fields := []zapcore.Field{
