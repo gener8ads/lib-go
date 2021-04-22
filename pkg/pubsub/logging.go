@@ -2,6 +2,7 @@ package pubsub
 
 import (
 	"context"
+	"log"
 	"os"
 	"time"
 
@@ -11,8 +12,11 @@ import (
 	"cloud.google.com/go/pubsub"
 )
 
+// ContextKey enum
+type ContextKey string
+
 const (
-	ResultKey = "pubsub.result"
+	ResultKey ContextKey = "pubsub.result"
 )
 
 type options struct {
@@ -63,7 +67,7 @@ func NewLoggingHandler(next HandlerFunc, subscriptionName string, opts ...Option
 	})
 
 	config := zapcore.EncoderConfig{
-		MessageKey:     ResultKey,
+		MessageKey:     string(ResultKey),
 		StacktraceKey:  "stacktrace",
 		LineEnding:     zapcore.DefaultLineEnding,
 		EncodeLevel:    zapcore.LowercaseLevelEncoder,
@@ -108,6 +112,13 @@ func NewLoggingHandler(next HandlerFunc, subscriptionName string, opts ...Option
 			result := "completed"
 			if r, ok := ctx.Value(ResultKey).(string); ok {
 				result = r
+				log.Panicln("Success")
+				log.Printf("ok: %#+v\n", ok)
+				log.Printf("r: %#+v\n", r)
+			} else {
+				log.Panicln("Fail")
+				log.Printf("ok: %#+v\n", ok)
+				log.Printf("r: %#+v\n", r)
 			}
 			o.messageFunc(ctx, result, logger, fields)
 		}
