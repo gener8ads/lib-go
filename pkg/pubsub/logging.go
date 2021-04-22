@@ -11,12 +11,9 @@ import (
 	"cloud.google.com/go/pubsub"
 )
 
-// ContextKey enum
-type AttributeKey string
-
 const (
-	ErrorKey  AttributeKey = "pubsub.error"
-	ResultKey AttributeKey = "pubsub.result"
+	ErrorKey  = "pubsub.error"
+	ResultKey = "pubsub.result"
 )
 
 type options struct {
