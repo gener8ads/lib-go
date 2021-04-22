@@ -12,17 +12,16 @@ import (
 )
 
 // ContextKey enum
-type ContextKey string
+type AttributeKey string
 
 const (
-	ResultKey ContextKey = "pubsub.result"
+	ErrorKey  AttributeKey = "pubsub.error"
+	ResultKey AttributeKey = "pubsub.result"
 )
 
 type options struct {
 	messageFunc MessageProducer
 }
-
-var ResultHolder string
 
 // HandlerFunc is a pubsub handler function which can be used in pubsub subscription receive.
 type HandlerFunc func(ctx context.Context, m *pubsub.Message)
@@ -96,7 +95,6 @@ func NewLoggingHandler(next HandlerFunc, subscriptionName string, opts ...Option
 		defer logger.Sync()
 		startTime := time.Now()
 
-		ResultHolder = "completed"
 		next(ctx, msg)
 
 		fields := []zapcore.Field{
@@ -110,8 +108,16 @@ func NewLoggingHandler(next HandlerFunc, subscriptionName string, opts ...Option
 			fields = append(fields, zap.Int("pubsub.msg.deliveryAttempt", *msg.DeliveryAttempt))
 		}
 
+		if val, ok := msg.Attributes[string(ErrorKey)]; ok {
+			fields = append(fields, zap.String("pubsub.error", val))
+		}
+
+		result := "not provided"
+		if val, ok := msg.Attributes[string(ResultKey)]; ok {
+			result = val
+		}
+
 		if o.messageFunc != nil {
-			result := ResultHolder
 			o.messageFunc(ctx, result, logger, fields)
 		}
 	}
