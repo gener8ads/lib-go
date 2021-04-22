@@ -99,9 +99,11 @@ func NewLoggingHandler(next HandlerFunc, subscriptionName string, opts ...Option
 
 		ResultHolder = "completed"
 
+		log.Printf("msg.Attributes: %#+v\n", msg.Attributes)
+
 		next(ctx, msg)
 
-		log.Printf("ResultHolder: %#+v\n", ResultHolder)
+		log.Printf("msg.Attributes: %#+v\n", msg.Attributes)
 
 		fields := []zapcore.Field{
 			zap.String("pubsub.subscription", subscriptionName),
