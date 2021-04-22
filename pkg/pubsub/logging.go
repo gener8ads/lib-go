@@ -3,6 +3,7 @@ package pubsub
 import (
 	"context"
 	"os"
+	"strings"
 	"time"
 
 	"go.uber.org/zap"
@@ -109,8 +110,10 @@ func NewLoggingHandler(next HandlerFunc, subscriptionName string, opts ...Option
 			fields = append(fields, zap.Int("pubsub.msg.deliveryAttempt", *msg.DeliveryAttempt))
 		}
 
-		if val, ok := msg.Attributes[string(ErrorKey)]; ok {
-			fields = append(fields, zap.String("pubsub.error", val))
+		for key, val := range msg.Attributes {
+			if strings.HasPrefix(key, "pubsub.") && key != ResultKey {
+				fields = append(fields, zap.String(key, val))
+			}
 		}
 
 		result := "not provided"
