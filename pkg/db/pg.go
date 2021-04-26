@@ -5,24 +5,26 @@ import (
 	"log"
 	"math"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/gener8ads/lib-go/pkg/env"
-	"github.com/go-pg/pg/v9"
+	"github.com/go-pg/pg/v10"
 )
 
 var conn *pg.DB
-var isInit bool
+var once sync.Once
 
 type dbLogger struct{}
 
 func (d dbLogger) BeforeQuery(c context.Context, q *pg.QueryEvent) (context.Context, error) {
-	return c, nil
+	return context.WithValue(c, "start", time.Now().UnixNano()), nil
 }
 
 func (d dbLogger) AfterQuery(c context.Context, q *pg.QueryEvent) error {
 	query, err := q.FormattedQuery()
-	log.Println(query)
+	end := time.Now().UnixNano()
+	log.Printf("%s (%.6f)", query, float64(end-c.Value("start").(int64))/1000000000)
 
 	if err != nil {
 		log.Printf("ERROR: %s", err)
@@ -33,61 +35,53 @@ func (d dbLogger) AfterQuery(c context.Context, q *pg.QueryEvent) error {
 
 // Connection to a DB for go-pg
 func Connection() *pg.DB {
-	if isInit {
-		return conn
-	}
+	once.Do(func() {
+		var err error
+		const maxRetries = 3
+		attempts := 0
 
-	var err error
-	const maxRetries = 3
-	attempts := 0
+		for attempts <= maxRetries {
+			conn, err = connect()
 
-	for attempts <= maxRetries {
-		conn, err = connect()
+			if err != nil {
+				attempts++
+				backoff := time.Duration(math.Pow(2, float64(attempts)))
+				log.Printf("DB connecton error: %s \nRetying in %ds…", err, backoff)
+				time.Sleep(backoff * time.Second)
+			} else {
+				break
+			}
+		}
 
 		if err != nil {
-			attempts++
-			backoff := time.Duration(math.Pow(2, float64(attempts)))
-			log.Printf("DB connecton error: %s \nRetying in %ds…", err, backoff)
-			time.Sleep(backoff * time.Second)
-		} else {
-			break
+			log.Fatalf("Unable to establish DB connection:\n%s", err)
 		}
-	}
 
-	if err != nil {
-		log.Fatalf("Unable to establish DB connection:\n%s", err)
-	}
+		queryLogEnabled, _ := strconv.ParseBool(env.Get("DB_QUERY_LOG", "false"))
+		if queryLogEnabled {
+			conn.AddQueryHook(dbLogger{})
+			go func() {
+				for {
+					time.Sleep(time.Second * 10)
+					PoolStats()
+				}
+			}()
+		}
+	})
 
-	queryLogEnabled, _ := strconv.ParseBool(env.Get("DB_QUERY_LOG", "false"))
-	if queryLogEnabled {
-		conn.AddQueryHook(dbLogger{})
-		go func() {
-			for {
-				time.Sleep(time.Second * 10)
-				PoolStats()
-			}
-		}()
-	}
-
-	isInit = true
 	return conn
 }
 
 // GetHandle for a single connection in the pool for go-pg
 func GetHandle() *pg.Conn {
-	if isInit {
-		return conn.Conn()
-	}
 	return Connection().Conn()
 }
 
 // PoolStats print the Connection Pool stats to STDOUT
 func PoolStats() {
-	if isInit {
-		stats := conn.PoolStats()
-		log.Printf("Pool stats:\n\tHits: %d\n\tMisses: %d\n\tTimeouts: %d\n\tTotalConns: %d\n\tIdleConns: %d\n\tStaleConns: %v\n",
-			stats.Hits, stats.Misses, stats.Timeouts, stats.TotalConns, stats.IdleConns, stats.StaleConns)
-	}
+	stats := Connection().PoolStats()
+	log.Printf("Pool stats:\n\tHits: %d\n\tMisses: %d\n\tTimeouts: %d\n\tTotalConns: %d\n\tIdleConns: %d\n\tStaleConns: %v\n",
+		stats.Hits, stats.Misses, stats.Timeouts, stats.TotalConns, stats.IdleConns, stats.StaleConns)
 }
 
 func connect() (*pg.DB, error) {
