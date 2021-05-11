@@ -53,7 +53,7 @@ func defaultMessageProducer(ctx context.Context, msg string, logger *zap.Logger,
 }
 
 func InitialiseLoggingHandler(opts ...Option) {
-	pubsubOptions := defaultOptions()
+	pubsubOptions = defaultOptions()
 	for _, opt := range opts {
 		opt(pubsubOptions)
 	}
