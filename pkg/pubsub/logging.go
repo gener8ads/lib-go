@@ -21,6 +21,10 @@ type options struct {
 	messageFunc MessageProducer
 }
 
+// To prevent constant re-initialisation, let's trap options & the logger in some global vars
+var pubsubOptions *options
+var pubsubLogger *zap.Logger
+
 // HandlerFunc is a pubsub handler function which can be used in pubsub subscription receive.
 type HandlerFunc func(ctx context.Context, m *pubsub.Message)
 
@@ -48,14 +52,11 @@ func defaultMessageProducer(ctx context.Context, msg string, logger *zap.Logger,
 	logger.Info(msg, fields...)
 }
 
-// NewLoggingHandler returns a new logging handler middleware which uses Zap as the logger.
-func NewLoggingHandler(next HandlerFunc, subscriptionName string, opts ...Option) HandlerFunc {
-	o := defaultOptions()
+func InitialiseLoggingHandler(opts ...Option) {
+	pubsubOptions := defaultOptions()
 	for _, opt := range opts {
-		opt(o)
+		opt(pubsubOptions)
 	}
-
-	var logger *zap.Logger
 	// First, define our level-handling logic.
 	highPriority := zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
 		return lvl >= zapcore.ErrorLevel
@@ -87,10 +88,13 @@ func NewLoggingHandler(next HandlerFunc, subscriptionName string, opts ...Option
 		zapcore.NewCore(jsonEncoder, jsonDebugging, lowPriority),
 	)
 
-	logger = zap.New(core)
+	pubsubLogger = zap.New(core)
+}
 
+// LoggingHandler returns a logging handler middleware which uses Zap as the logger.
+func LoggingHandler(next HandlerFunc, subscriptionName string) HandlerFunc {
 	return func(ctx context.Context, msg *pubsub.Message) {
-		defer logger.Sync()
+		defer pubsubLogger.Sync()
 		startTime := time.Now()
 
 		if msg.Attributes == nil {
@@ -121,8 +125,8 @@ func NewLoggingHandler(next HandlerFunc, subscriptionName string, opts ...Option
 			result = val
 		}
 
-		if o.messageFunc != nil {
-			o.messageFunc(ctx, result, logger, fields)
+		if pubsubOptions.messageFunc != nil {
+			pubsubOptions.messageFunc(ctx, result, pubsubLogger, fields)
 		}
 	}
 }
