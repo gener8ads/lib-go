@@ -2,6 +2,7 @@ package pubsub
 
 import (
 	"context"
+	"log"
 	"os"
 	"strings"
 	"time"
@@ -53,6 +54,7 @@ func defaultMessageProducer(ctx context.Context, msg string, logger *zap.Logger,
 }
 
 func InitialiseLoggingHandler(opts ...Option) {
+	log.Printf("In Initialisation routing: %#+v\n", opts)
 	pubsubOptions = defaultOptions()
 	for _, opt := range opts {
 		opt(pubsubOptions)
@@ -93,7 +95,9 @@ func InitialiseLoggingHandler(opts ...Option) {
 
 // LoggingHandler returns a logging handler middleware which uses Zap as the logger.
 func LoggingHandler(next HandlerFunc, subscriptionName string) HandlerFunc {
+	log.Printf("Outside of returned function: %#+v\n", subscriptionName)
 	return func(ctx context.Context, msg *pubsub.Message) {
+		log.Printf("msg: %#+v\n", msg)
 		defer pubsubLogger.Sync()
 		startTime := time.Now()
 
