@@ -2,8 +2,10 @@ package pubsub
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"cloud.google.com/go/pubsub"
@@ -63,4 +65,31 @@ func Subscription(subID string, topic *pubsub.Topic) (*pubsub.Subscription, erro
 	}
 
 	return subscription, nil
+}
+
+func Ack(msg *pubsub.Message, errorMessage ...string) {
+	if len(errorMessage) > 0 {
+		msg.Attributes[ErrorKey] = errorMessage[0]
+	}
+	msg.Attributes[ResultKey] = "ACK"
+	msg.Ack()
+}
+
+func Nack(msg *pubsub.Message, errorMessage ...string) {
+	if len(errorMessage) > 0 {
+		msg.Attributes[ErrorKey] = errorMessage[0]
+	}
+	msg.Attributes[ResultKey] = "NACK"
+	msg.Ack()
+}
+
+func ErrorMessage(msg *pubsub.Message, errorMessage string) {
+	msg.Attributes[ErrorKey] = errorMessage
+}
+
+func LogDetail(msg *pubsub.Message, detailKey string, detailValue string) {
+	if !strings.HasPrefix(detailKey, "pubsub.") {
+		detailKey = fmt.Sprint("pubsubs.%s", detailKey)
+	}
+	msg.Attributes[detailKey] = detailValue
 }
