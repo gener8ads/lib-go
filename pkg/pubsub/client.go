@@ -89,7 +89,7 @@ func ErrorMessage(msg *pubsub.Message, errorMessage string) {
 
 func LogDetail(msg *pubsub.Message, detailKey string, detailValue string) {
 	if !strings.HasPrefix(detailKey, "pubsub.") {
-		detailKey = fmt.Sprint("pubsubs.%", detailKey)
+		detailKey = fmt.Sprint("pubsubs.%s", detailKey)
 	}
 	msg.Attributes[detailKey] = detailValue
 }
