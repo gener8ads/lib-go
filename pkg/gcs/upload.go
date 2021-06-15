@@ -3,6 +3,8 @@ package gcs
 import (
 	"bytes"
 	"context"
+	"crypto/sha1"
+	"encoding/base64"
 	"fmt"
 	"io"
 	"mime"
@@ -20,17 +22,17 @@ type Client struct {
 }
 
 // CloudUpload stores the file in a bucket
-func (c Client) CloudUpload(file *multipart.FileHeader) (string, error) {
+func (c Client) CloudUpload(file *multipart.FileHeader) (string, int64, string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 	client, clientErr := storage.NewClient(ctx)
 	if clientErr != nil {
-		return "", clientErr
+		return "", 0, "", clientErr
 	}
 
 	fileExt, err := mime.ExtensionsByType(file.Header["Content-Type"][0])
 	if err != nil || len(fileExt) == 0 {
-		return "", err
+		return "", 0, "", err
 	}
 	objectName := fmt.Sprintf("%s%s", c.GenerateFolderName(), fileExt[0])
 	writer := client.Bucket(c.BucketName).Object(objectName).NewWriter(ctx)
@@ -38,15 +40,22 @@ func (c Client) CloudUpload(file *multipart.FileHeader) (string, error) {
 
 	reader, err := file.Open()
 	if err != nil {
-		return "", err
+		return "", 0, "", err
 	}
 
 	_, uploadError := io.Copy(writer, reader)
 	if uploadError != nil {
-		return "", uploadError
+		return "", 0, "", uploadError
 	}
 
-	return fmt.Sprintf("gs://%s/%s", c.BucketName, objectName), nil
+	hasher := sha1.New()
+	_, hashError := io.Copy(hasher, reader)
+	if hashError != nil {
+		return "", 0, "", hashError
+	}
+	fileHash := base64.URLEncoding.EncodeToString(hasher.Sum(nil))
+
+	return fmt.Sprintf("gs://%s/%s", c.BucketName, objectName), file.Size, fileHash, nil
 }
 
 // CloudWriteFileWithName stores the file in a bucket, under a user provided name, which may include a folder-path
