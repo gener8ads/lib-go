@@ -31,10 +31,16 @@ func (c Client) CloudUpload(file *multipart.FileHeader) (string, int64, string, 
 	}
 
 	fileExt, err := mime.ExtensionsByType(file.Header["Content-Type"][0])
-	if err != nil || len(fileExt) == 0 {
+	if err != nil {
 		return "", 0, "", err
 	}
-	objectName := fmt.Sprintf("%s%s", c.GenerateFolderName(), fileExt[0])
+	fileExtension := ""
+	if len(fileExt) == 0 {
+		fileExtension = file.Filename[strings.LastIndex(file.Filename, "."):]
+	} else {
+		fileExtension = fileExt[0]
+	}
+	objectName := fmt.Sprintf("%s%s", c.GenerateFolderName(), fileExtension)
 	writer := client.Bucket(c.BucketName).Object(objectName).NewWriter(ctx)
 	defer writer.Close()
 
