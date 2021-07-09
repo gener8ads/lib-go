@@ -80,7 +80,7 @@ func Nack(msg *pubsub.Message, errorMessage ...string) {
 		msg.Attributes[ErrorKey] = errorMessage[0]
 	}
 	msg.Attributes[ResultKey] = "NACK"
-	msg.Ack()
+	msg.Nack()
 }
 
 func ErrorMessage(msg *pubsub.Message, errorMessage string) {
