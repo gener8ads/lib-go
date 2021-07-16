@@ -82,13 +82,13 @@ func Middleware(expectedAction string) gin.HandlerFunc {
 
 	return func(c *gin.Context) {
 		if !enabled {
-			c.Set("log_field:captchaNotEnabled", "captcha not enabled")
+			c.Set("log_field:captchaError", "NotEnabled")
 			return
 		}
 
 		captchaVersion, err := strconv.Atoi(c.GetHeader(versionHeader))
 		if err != nil {
-			c.Set("log_field:captchaVersionErr", err.Error())
+			c.Set("log_field:captchaError", fmt.Sprintf("Version Error: %s", err.Error()))
 			jsonapi.Error(c, jsonapi.ErrorResponse{
 				Status: http.StatusUnprocessableEntity,
 				Code:   "recaptcha.missingVersion",
@@ -99,7 +99,7 @@ func Middleware(expectedAction string) gin.HandlerFunc {
 
 		secret, exists := secrets[captchaVersion]
 		if !exists || secret == "" {
-			c.Set("log_field:captchaSecretNotExists", fmt.Sprintf("%d", captchaVersion))
+			c.Set("log_field:captchaError", fmt.Sprintf("Secret Doesn't Exist. Version: %d", captchaVersion))
 			jsonapi.Error(c, jsonapi.ErrorResponse{
 				Status: http.StatusUnprocessableEntity,
 				Code:   "recaptcha.missingVersion",
@@ -111,9 +111,9 @@ func Middleware(expectedAction string) gin.HandlerFunc {
 		res, err := Verify(secret, c.GetHeader(tokenHeader), ginutil.ExtractIP(c))
 		if err != nil || !res.Success {
 			if err != nil {
-				c.Set("log_field:captchaVerifyErr", err.Error())
+				c.Set("log_field:captchaError", fmt.Sprintf("Verification Error: %s", err.Error()))
 			} else {
-				c.Set("log_field:captchaVerifyFailed", fmt.Sprintf("Success-%t~Score-%f~Action-%s~Hostname-%s~ChallengeTimestamp-%s", res.Success, res.Score, res.Action, res.Hostname, res.ChallengeTimestamp.Format(time.RFC3339Nano)))
+				c.Set("log_field:captchaError", fmt.Sprintf("VerificationFailed-Success-%t~Score-%f~Action-%s~Hostname-%s~ChallengeTimestamp-%s", res.Success, res.Score, res.Action, res.Hostname, res.ChallengeTimestamp.Format(time.RFC3339Nano)))
 			}
 			jsonapi.Error(c, jsonapi.ErrorResponse{
 				Status: http.StatusUnprocessableEntity,
@@ -125,7 +125,7 @@ func Middleware(expectedAction string) gin.HandlerFunc {
 
 		if captchaVersion == 3 {
 			if res.Action != expectedAction {
-				c.Set("log_field:captchaUnexpectedAction", fmt.Sprintf("Expected-%s~Response-%s", expectedAction, res.Action))
+				c.Set("log_field:captchaError", fmt.Sprintf("UnexpectedAction-Expected-%s~Response-%s", expectedAction, res.Action))
 				jsonapi.Error(c, jsonapi.ErrorResponse{
 					Status: http.StatusUnprocessableEntity,
 					Code:   "recaptcha.incorrectAction",
@@ -135,7 +135,7 @@ func Middleware(expectedAction string) gin.HandlerFunc {
 			}
 
 			if res.Score < minScore {
-				c.Set("log_field:captchaScoreTooLow", fmt.Sprintf("Minimum-%f~Response-%f", minScore, res.Score))
+				c.Set("log_field:captchaError", fmt.Sprintf("ScoreTooLow-Minimum-%f~Response-%f", minScore, res.Score))
 				jsonapi.Error(c, jsonapi.ErrorResponse{
 					Status: http.StatusUnprocessableEntity,
 					Code:   "recaptcha.challenge",
@@ -146,7 +146,7 @@ func Middleware(expectedAction string) gin.HandlerFunc {
 		}
 
 		if expectedHostname != "" && res.Hostname != expectedHostname {
-			c.Set("log_field:captchaUnexpectedHostname", fmt.Sprintf("Expected-%s~Response-%s", expectedHostname, res.Hostname))
+			c.Set("log_field:captchaError", fmt.Sprintf("UnexpectedHostname-Expected-%s~Response-%s", expectedHostname, res.Hostname))
 			jsonapi.Error(c, jsonapi.ErrorResponse{
 				Status: http.StatusUnprocessableEntity,
 				Code:   "recaptcha.challenge",
@@ -156,7 +156,7 @@ func Middleware(expectedAction string) gin.HandlerFunc {
 		}
 
 		if maxTime > 0 && res.ChallengeTimestamp.Add(maxTime*time.Second).Before(time.Now()) {
-			c.Set("log_field:captchaChallengeExpired", fmt.Sprintf("CurrentTime-%s~ChallengedExpiration-%s", time.Now().Format(time.RFC3339Nano), res.ChallengeTimestamp.Add(maxTime*time.Second).Format(time.RFC3339Nano)))
+			c.Set("log_field:captchaError", fmt.Sprintf("ChallengeExpired-CurrentTime-%s~ChallengedExpiration-%s", time.Now().Format(time.RFC3339Nano), res.ChallengeTimestamp.Add(maxTime*time.Second).Format(time.RFC3339Nano)))
 			jsonapi.Error(c, jsonapi.ErrorResponse{
 				Status: http.StatusUnprocessableEntity,
 				Code:   "recaptcha.challenge",
