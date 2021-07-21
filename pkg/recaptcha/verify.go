@@ -76,10 +76,6 @@ func Middleware(expectedAction string) gin.HandlerFunc {
 
 	expectedHostname := os.Getenv("RECAPTCHA_HOSTNAME")
 
-	iMaxTime, _ := strconv.Atoi(os.Getenv("RECAPTCHA_MAX_TIME"))
-
-	maxTime := time.Duration(iMaxTime)
-
 	return func(c *gin.Context) {
 		if !enabled {
 			c.Set("log_field:captchaError", "NotEnabled")
@@ -147,16 +143,6 @@ func Middleware(expectedAction string) gin.HandlerFunc {
 
 		if expectedHostname != "" && res.Hostname != expectedHostname {
 			c.Set("log_field:captchaError", fmt.Sprintf("UnexpectedHostname-Expected-%s~Response-%s", expectedHostname, res.Hostname))
-			jsonapi.Error(c, jsonapi.ErrorResponse{
-				Status: http.StatusUnprocessableEntity,
-				Code:   "recaptcha.challenge",
-				Detail: "recaptcha.challenge",
-			})
-			return
-		}
-
-		if maxTime > 0 && res.ChallengeTimestamp.Add(maxTime*time.Second).Before(time.Now()) {
-			c.Set("log_field:captchaError", fmt.Sprintf("ChallengeExpired-CurrentTime-%s~ChallengedExpiration-%s", time.Now().Format(time.RFC3339Nano), res.ChallengeTimestamp.Add(maxTime*time.Second).Format(time.RFC3339Nano)))
 			jsonapi.Error(c, jsonapi.ErrorResponse{
 				Status: http.StatusUnprocessableEntity,
 				Code:   "recaptcha.challenge",
